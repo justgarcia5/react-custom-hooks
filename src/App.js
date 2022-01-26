@@ -2,49 +2,41 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import MoviesList from './components/MoviesList';
 import AddMovie from './components/AddMovies';
+import useFetchHttps from './hooks/use-fetchHttp';
 
 import './App.css'
 
 function App() {
   const [movies, setMovies] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const fetchMoviesHandler = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('https://tasks-a0995-default-rtdb.firebaseio.com/tasks.json');
-      if (!response.ok) {
-        throw new Error('Something went wrong!');
-      }
+  const transformMovies = moviesObj => {
+    const loadedMovies = [];
 
-      const data = await response.json();
-
-      const loadedMovies = [];
-
-      for (const key in data) {
-        loadedMovies.push({
-          id: key,
-          title: data[key].title,
-          openingText: data[key].openingText,
-          releaseDate: data[key].releaseDate,
-        });
-      }
-
-      setMovies(loadedMovies);
-    } catch (error) {
-      setError(error.message);
+    for (const key in moviesObj) {
+      loadedMovies.push({
+        id: key,
+        title: moviesObj[key].title,
+        openingText: moviesObj[key].openingText,
+        releaseDate: moviesObj[key].releaseDate,
+      });
     }
-    setIsLoading(false);
-  }, []);
+    setMovies(loadedMovies);
+  }
+
+  const moviesData = useFetchHttps(
+    { url: 'https://react-https-edc4d-default-rtdb.firebaseio.com/movies.json' },
+    transformMovies
+  )
+
+  const { isLoading, error, sendRequests: fetchMovies } = moviesData;
+  console.log(moviesData);
 
   useEffect(() => {
-    fetchMoviesHandler();
-  }, [fetchMoviesHandler]);
+    fetchMovies()
+  }, []);
 
   async function addMovieHandler(movie) {
-    const response = await fetch('https://tasks-a0995-default-rtdb.firebaseio.com/tasks.json', {
+    const response = await fetch('https://react-https-edc4d-default-rtdb.firebaseio.com/movies.json', {
       method: 'POST',
       body: JSON.stringify(movie),
       headers: {
@@ -75,7 +67,7 @@ function App() {
         <AddMovie onAddMovie={addMovieHandler} />
       </section>
       <section>
-        <button onClick={fetchMoviesHandler}>Fetch Movies</button>
+        <button onClick={fetchMovies}>Fetch Movies</button>
       </section>
       <section>{content}</section>
     </React.Fragment>
