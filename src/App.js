@@ -1,75 +1,42 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import MoviesList from './components/MoviesList';
-import AddMovie from './components/AddMovies';
-import useFetchHttps from './hooks/use-fetchHttp';
-
-import './App.css'
+import Tasks from './components/Tasks/Tasks';
+import NewTask from './components/NewTask/NewTask';
+import useFetch from './components/hooks/use-fetch';
 
 function App() {
-  const [movies, setMovies] = useState([]);
-
-  const transformMovies = moviesObj => {
-    const loadedMovies = [];
-
-    for (const key in moviesObj) {
-      loadedMovies.push({
-        id: key,
-        title: moviesObj[key].title,
-        openingText: moviesObj[key].openingText,
-        releaseDate: moviesObj[key].releaseDate,
-      });
-    }
-    setMovies(loadedMovies);
-  }
-
-  const moviesData = useFetchHttps(
-    { url: 'https://react-https-edc4d-default-rtdb.firebaseio.com/movies.json' },
-    transformMovies
-  )
-
-  const { isLoading, error, sendRequests: fetchMovies } = moviesData;
-  console.log(moviesData);
+  const [tasks, setTasks] = useState([]);
+  const { isLoading, error, sendRequest: fetchTasks} = useFetch();
 
   useEffect(() => {
-    fetchMovies()
-  }, []);
+    const transformTasks = taskObj => {
+      const loadedTasks = [];
 
-  async function addMovieHandler(movie) {
-    const response = await fetch('https://react-https-edc4d-default-rtdb.firebaseio.com/movies.json', {
-      method: 'POST',
-      body: JSON.stringify(movie),
-      headers: {
-        'Content-Type': 'application/json'
+      for (const taskKey in taskObj) {
+        loadedTasks.push({ id: taskKey, text: taskObj[taskKey].text });
       }
-    });
-    const data = await response.json();
-    console.log(data);
-  }
+      setTasks(loadedTasks);
+    };
 
-  let content = <p>Found no movies.</p>;
+    fetchTasks(
+      { url: 'https://tasks-a0995-default-rtdb.firebaseio.com/tasks.json' },
+      transformTasks,
+    );
+  }, [fetchTasks]);
 
-  if (movies.length > 0) {
-    content = <MoviesList movies={movies} />;
-  }
-
-  if (error) {
-    content = <p>{error}</p>;
-  }
-
-  if (isLoading) {
-    content = <p>Loading...</p>;
-  }
+  const taskAddHandler = (task) => {
+    setTasks((prevTasks) => prevTasks.concat(task));
+  };
 
   return (
     <React.Fragment>
-      <section>
-        <AddMovie onAddMovie={addMovieHandler} />
-      </section>
-      <section>
-        <button onClick={fetchMovies}>Fetch Movies</button>
-      </section>
-      <section>{content}</section>
+      <NewTask onAddTask={taskAddHandler} />
+      <Tasks
+        items={tasks}
+        loading={isLoading}
+        error={error}
+        onFetch={fetchTasks}
+      />
     </React.Fragment>
   );
 }
