@@ -6,7 +6,7 @@ import useFetch from './components/hooks/use-fetch';
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const { isLoading, error, sendRequest: fetchTasks} = useFetch();
+  const { isLoading, error, sendRequest: fetchTasks } = useFetch();
 
   useEffect(() => {
     const transformTasks = taskObj => {

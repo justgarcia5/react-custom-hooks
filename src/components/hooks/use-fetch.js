@@ -21,7 +21,7 @@ const useFetch = () => {
       }
 
       const data = await response.json();
-      applyData(data);
+      applyData(data, requestData.body);
 
     } catch (err) {
       setError(err.message || 'Something went wrong!');
